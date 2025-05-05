@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Travel Personality Game!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Base Styles & CSS Variables --- */
+        :root {
+            /* Default Theme (Time Warp Teal/Amber) */
+            --bg-color: #E6FFFA; /* teal-50 */
+            --main-container-bg: #ffffff;
+            --main-container-border: #975A16; /* yellow-800 */
+            --main-container-shadow: #975A16;
+            --card-bg: #FEFCBF; /* yellow-100 */
+            --card-border: #F6E05E; /* yellow-400 */
+            --card-shadow: #ECC94B; /* yellow-500 */
+            --choice-bg: #B2F5EA; /* teal-200 */
+            --choice-border: #4FD1C5; /* teal-300 */
+            --choice-text: #234E52; /* teal-900 */
+            --choice-hover-bg: #81E6D9; /* teal-300 */
+            --choice-selected-bg: #38B2AC; /* teal-500 */
+            --choice-selected-border: #2C7A7B; /* teal-700 */
+            --choice-selected-text: #E6FFFA; /* teal-50 */
+            --action-button-text: white;
+            --action-button-border: #7B341E; /* orange-900 */
+            --action-button-shadow: #7B341E;
+            --action-button-hover-shadow: #652B19; /* orange-950 */
+            --action-button-active-shadow: #7B341E;
+            --predict-button-bg: #DD6B20; /* orange-600 */
+            --predict-button-hover-bg: #C05621; /* orange-700 */
+            --predict-button-active-bg: #9C4221; /* orange-800 */
+            --reset-button-bg: #4FD1C5; /* teal-400 */
+            --reset-button-hover-bg: #38B2AC; /* teal-500 */
+            --reset-button-active-bg: #319795; /* teal-600 */
+            --result-area-bg: #FEFCBF; /* yellow-100 */
+            --result-area-border: #F6E05E; /* yellow-400 */
+            --result-area-shadow: #ECC94B; /* yellow-500 */
+            --result-text-color: #B7791F; /* yellow-800 */
+            --persona-text-color: #9C4221; /* orange-800 */
+            --thinking-text-color: #975A16; /* yellow-800 */
+            --heading-color: #C05621; /* orange-700 */
+            --subheading-color: #2C7A7B; /* teal-700 */
+            --question-text-color: #7B341E; /* orange-900 */
+            --label-color: #C05621;
+            --footer-text-color: #718096; /* gray-600 */
+            --focus-ring-color: var(--predict-button-bg);
+            --theme-selector-bg: #FEFCBF;
+            --theme-selector-border: #F6E05E;
+            --theme-selector-text: #B7791F;
+        }
+
+        /* --- Theme Definitions --- */
+        body[data-theme="ocean-blue"] { --bg-color: #E0F2FE; --main-container-bg: #ffffff; --main-container-border: #075985; --main-container-shadow: #075985; --card-bg: #CFFAFE; --card-border: #67E8F9; --card-shadow: #22D3EE; --choice-bg: #A5F3FC; --choice-border: #67E8F9; --choice-text: #155E75; --choice-hover-bg: #67E8F9; --choice-selected-bg: #22D3EE; --choice-selected-border: #0E7490; --choice-selected-text: #164E63; --action-button-border: #075985; --action-button-shadow: #075985; --action-button-hover-shadow: #075985; --action-button-active-shadow: #075985; --predict-button-bg: #38BDF8; --predict-button-hover-bg: #0EA5E9; --predict-button-active-bg: #0284C7; --reset-button-bg: #2DD4BF; --reset-button-hover-bg: #14B8A6; --reset-button-active-bg: #0D9488; --result-area-bg: #A5F3FC; --result-area-border: #67E8F9; --result-area-shadow: #22D3EE; --result-text-color: #164E63; --persona-text-color: #083344; --thinking-text-color: #155E75; --heading-color: #0C4A6E; --subheading-color: #155E75; --question-text-color: #1E40AF; --label-color: #155E75; --footer-text-color: #0369A1; --focus-ring-color: var(--predict-button-bg); --theme-selector-bg: #A5F3FC; --theme-selector-border: #67E8F9; --theme-selector-text: #155E75; }
+        body[data-theme="forest-green"] { --bg-color: #F0FFF4; --main-container-bg: #ffffff; --main-container-border: #2F855A; --main-container-shadow: #2F855A; --card-bg: #FEFCBF; --card-border: #F6E05E; --card-shadow: #ECC94B; --choice-bg: #C6F6D5; --choice-border: #68D391; --choice-text: #22543D; --choice-hover-bg: #9AE6B4; --choice-selected-bg: #48BB78; --choice-selected-border: #2F855A; --choice-selected-text: #F0FFF4; --action-button-border: #276749; --action-button-shadow: #276749; --action-button-hover-shadow: #22543D; --action-button-active-shadow: #276749; --predict-button-bg: #A3E635; --predict-button-hover-bg: #84CC16; --predict-button-active-bg: #65A30D; --reset-button-bg: #4FD1C5; --reset-button-hover-bg: #38B2AC; --reset-button-active-bg: #319795; --result-area-bg: #A7F3D0; --result-area-border: #6EE7B7; --result-area-shadow: #34D399; --result-text-color: #047857; --persona-text-color: #064E3B; --thinking-text-color: #065F46; --heading-color: #2F855A; --subheading-color: #276749; --question-text-color: #065F46; --label-color: #276749; --footer-text-color: #718096; --focus-ring-color: var(--predict-button-bg); --theme-selector-bg: #FEFCBF; --theme-selector-border: #F6E05E; --theme-selector-text: #B7791F; }
+        body[data-theme="cosmic-purple"] { --bg-color: #FAF5FF; --main-container-bg: #1E1B4B; --main-container-border: #A78BFA; --main-container-shadow: #A78BFA; --card-bg: #3730A3; --card-border: #C4B5FD; --card-shadow: #A78BFA; --choice-bg: #4338CA; --choice-border: #A78BFA; --choice-text: #EEF2FF; --choice-hover-bg: #5B21B6; --choice-selected-bg: #7C3AED; --choice-selected-border: #C4B5FD; --choice-selected-text: #F5F3FF; --action-button-text: #1E1B4B; --action-button-border: #A78BFA; --action-button-shadow: #A78BFA; --action-button-hover-shadow: #A78BFA; --action-button-active-shadow: #A78BFA; --predict-button-bg: #F472B6; --predict-button-hover-bg: #EC4899; --predict-button-active-bg: #DB2777; --reset-button-bg: #A78BFA; --reset-button-hover-bg: #8B5CF6; --reset-button-active-bg: #7C3AED; --result-area-bg: #4338CA; --result-area-border: #A78BFA; --result-area-shadow: #A78BFA; --result-text-color: #C4B5FD; --persona-text-color: #EDE9FE; --thinking-text-color: #A78BFA; --heading-color: #EDE9FE; --subheading-color: #C4B5FD; --question-text-color: #DDD6FE; --label-color: #C4B5FD; --footer-text-color: #A78BFA; --focus-ring-color: var(--predict-button-bg); --theme-selector-bg: #4338CA; --theme-selector-border: #A78BFA; --theme-selector-text: #EEF2FF; }
+        body[data-theme="sunny-yellow"] { --bg-color: #FEF9C3; --main-container-bg: #ffffff; --main-container-border: #CA8A04; --main-container-shadow: #CA8A04; --card-bg: #FEF08A; --card-border: #FACC15; --card-shadow: #EAB308; --choice-bg: #FEF3C7; --choice-border: #FDE047; --choice-text: #854D0E; --choice-hover-bg: #FDE047; --choice-selected-bg: #FACC15; --choice-selected-border: #CA8A04; --choice-selected-text: #78350F; --action-button-border: #CA8A04; --action-button-shadow: #CA8A04; --action-button-hover-shadow: #CA8A04; --action-button-active-shadow: #CA8A04; --predict-button-bg: #FB923C; --predict-button-hover-bg: #F97316; --predict-button-active-bg: #EA580C; --reset-button-bg: #FACC15; --reset-button-hover-bg: #EAB308; --reset-button-active-bg: #CA8A04; --result-area-bg: #FEF3C7; --result-area-border: #FDE047; --result-area-shadow: #EAB308; --result-text-color: #854D0E; --persona-text-color: #713F12; --thinking-text-color: #A16207; --heading-color: #B45309; --subheading-color: #A16207; --question-text-color: #B45309; --label-color: #A16207; --footer-text-color: #B45309; --focus-ring-color: var(--predict-button-bg); --theme-selector-bg: #FEF3C7; --theme-selector-border: #FDE047; --theme-selector-text: #854D0E; }
+        body[data-theme="candy-pink"] { --bg-color: #FDF2F8; --main-container-bg: #ffffff; --main-container-border: #9D174D; --main-container-shadow: #9D174D; --card-bg: #FCE7F3; --card-border: #F9A8D4; --card-shadow: #F472B6; --choice-bg: #FBCFE8; --choice-border: #F9A8D4; --choice-text: #9D174D; --choice-hover-bg: #F9A8D4; --choice-selected-bg: #F472B6; --choice-selected-border: #DB2777; --choice-selected-text: #831843; --action-button-border: #9D174D; --action-button-shadow: #9D174D; --action-button-hover-shadow: #9D174D; --action-button-active-shadow: #9D174D; --predict-button-bg: #A78BFA; --predict-button-hover-bg: #8B5CF6; --predict-button-active-bg: #7C3AED; --reset-button-bg: #F472B6; --reset-button-hover-bg: #EC4899; --reset-button-active-bg: #DB2777; --result-area-bg: #FBCFE8; --result-area-border: #F9A8D4; --result-area-shadow: #F472B6; --result-text-color: #9D174D; --persona-text-color: #831843; --thinking-text-color: #BE185D; --heading-color: #831843; --subheading-color: #BE185D; --question-text-color: #BE185D; --label-color: #BE185D; --footer-text-color: #9D174D; --focus-ring-color: var(--predict-button-bg); --theme-selector-bg: #FBCFE8; --theme-selector-border: #F9A8D4; --theme-selector-text: #9D174D; }
+        body[data-theme="night-mode"] { --bg-color: #111827; --main-container-bg: #1F2937; --main-container-border: #6B7280; --main-container-shadow: #9CA3AF; --card-bg: #374151; --card-border: #9CA3AF; --card-shadow: #D1D5DB; --choice-bg: #4B5563; --choice-border: #9CA3AF; --choice-text: #F9FAFB; --choice-hover-bg: #52525b; --choice-selected-bg: #6B7280; --choice-selected-border: #D1D5DB; --choice-selected-text: #F9FAFB; --action-button-text: #111827; --action-button-border: #9CA3AF; --action-button-shadow: #9CA3AF; --action-button-hover-shadow: #D1D5DB; --action-button-active-shadow: #6B7280; --predict-button-bg: #60A5FA; --predict-button-hover-bg: #3B82F6; --predict-button-active-bg: #2563EB; --reset-button-bg: #34D399; --reset-button-hover-bg: #10B981; --reset-button-active-bg: #059669; --result-area-bg: #4B5563; --result-area-border: #9CA3AF; --result-area-shadow: #D1D5DB; --result-text-color: #ECFDF5; --persona-text-color: #f0fdf4; --thinking-text-color: #D1D5DB; --heading-color: #F9FAFB; --subheading-color: #E5E7EB; --question-text-color: #E5E7EB; --label-color: #E5E7EB; --footer-text-color: #9CA3AF; --focus-ring-color: var(--predict-button-bg); --theme-selector-bg: #4B5563; --theme-selector-border: #9CA3AF; --theme-selector-text: #F9FAFB; }
+
+        /* --- General Styles --- */
+        html, body { height: 100%; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding-top: 5rem; /* Space for theme selector */
+            position: relative;
+            transition: background-color 0.3s ease;
+            overflow-x: hidden;
+        }
+        main { flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
+
+        .main-container {
+            background-color: var(--main-container-bg);
+            border: 3px solid var(--main-container-border);
+            border-radius: 20px;
+            box-shadow: 8px 8px 0px var(--main-container-shadow);
+            width: 100%;
+            max-width: 48rem; /* Moderate width */
+            margin: 2rem auto 1rem auto; /* Default margin */
+            padding: 1.5rem sm:p-8;
+            text-align: center;
+            flex-shrink: 0;
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Card Styling */
+        .question-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 4px 4px 0px var(--card-shadow);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        .question-heading {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--question-text-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px dashed var(--card-border);
+            transition: color 0.3s ease;
+            line-height: 1.4;
+        }
+
+        /* Choice Button Styling */
+        .choices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 1rem;
+            justify-items: center;
+            margin-top: 1.5rem;
+        }
+        .choice-button {
+            background-color: var(--choice-bg);
+            color: var(--choice-text);
+            border: 2px solid var(--choice-border);
+            border-radius: 12px;
+            padding: 0.6rem 0.8rem;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            width: 100%;
+            max-width: 190px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            box-shadow: 3px 3px 0px var(--choice-border);
+            min-height: 55px;
+            text-align: center;
+            line-height: 1.25;
+        }
+        .choice-button:hover:not(.selected):not(:disabled) {
+            background-color: var(--choice-hover-bg);
+            transform: translateY(-2px);
+            box-shadow: 4px 4px 0px var(--choice-border);
+        }
+        .choice-button.selected {
+            background-color: var(--choice-selected-bg);
+            border-color: var(--choice-selected-border);
+            color: var(--choice-selected-text);
+            box-shadow: 2px 2px 0px var(--choice-selected-border);
+            transform: translateY(1px);
+            cursor: default;
+        }
+         .choice-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            background-color: var(--choice-bg); /* Keep bg */
+            box-shadow: 3px 3px 0px var(--choice-border);
+            transform: none;
+        }
+        .choice-button span { /* Emoji span */
+            font-size: 1.2rem;
+            display: inline-block;
+            line-height: 1;
+            flex-shrink: 0;
+            margin-right: 0.2rem;
+        }
+         .choice-button .text-content { /* Text wrapper */
+             flex-shrink: 1;
+             text-align: center;
+             overflow-wrap: break-word;
+             word-break: break-word;
+        }
+
+
+        /* Action Button Styles */
+        .action-button {
+            color: var(--action-button-text); font-weight: 700; padding: 0.8rem 1.8rem; border-radius: 1rem; border: 3px solid var(--action-button-border); box-shadow: 5px 5px 0px var(--action-button-shadow); transition: all 0.15s ease-out; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; font-size: 1rem; min-width: 120px; transform-style: preserve-3d;
+        }
+        .action-button:hover:not(:disabled) { box-shadow: 6px 6px 0px var(--action-button-hover-shadow); transform: translateY(-3px) translateX(-2px) translateZ(5px); }
+        .action-button:active:not(:disabled) { box-shadow: 2px 2px 0px var(--action-button-active-shadow); transform: translateY(2px) translateX(2px) translateZ(0px); }
+        .action-button:focus { outline: none; box-shadow: 5px 5px 0px var(--action-button-shadow), 0 0 0 3px var(--bg-color), 0 0 0 5px var(--focus-ring-color); }
+        .action-button:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: 5px 5px 0px var(--action-button-shadow); transform: none; }
+
+        #predictBtn { background-color: var(--predict-button-bg); border-color: var(--action-button-border); box-shadow: 5px 5px 0px var(--action-button-shadow); --focus-ring-color: var(--predict-button-bg); }
+        #predictBtn:hover:not(:disabled) { background-color: var(--predict-button-hover-bg); box-shadow: 6px 6px 0px var(--action-button-hover-shadow); }
+        #predictBtn:active:not(:disabled) { background-color: var(--predict-button-active-bg); box-shadow: 2px 2px 0px var(--action-button-active-shadow); }
+
+        #resetBtn { background-color: var(--reset-button-bg); border-color: var(--action-button-border); box-shadow: 5px 5px 0px var(--action-button-shadow); --focus-ring-color: var(--reset-button-bg); }
+        #resetBtn:hover { background-color: var(--reset-button-hover-bg); box-shadow: 6px 6px 0px var(--action-button-hover-shadow); }
+        #resetBtn:active { background-color: var(--reset-button-active-bg); box-shadow: 2px 2px 0px var(--action-button-active-shadow); }
+
+
+        /* Result Area Styles */
+        #resultArea {
+            background-color: var(--result-area-bg); border: 2px dashed var(--result-area-border); border-radius: 16px; box-shadow: 4px 4px 0px var(--result-area-shadow); padding: 1.5rem; margin-top: 2rem; min-height: 180px; text-align: center; transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; opacity: 0; transform: scale(0.9) rotate(-2deg); display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #resultArea.visible { opacity: 1; transform: scale(1) rotate(0deg); animation: reveal 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
+        #resultText { font-size: 1.1rem; font-weight: 600; color: var(--result-text-color); margin-bottom: 1rem; transition: color 0.3s ease; line-height: 1.4; }
+        .persona { font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem; color: var(--persona-text-color); }
+        #thinkingText { font-style: italic; color: var(--thinking-text-color); transition: color 0.3s ease; font-size: 1.1rem; margin-bottom: 1rem; }
+
+        /* Headings & Labels */
+        .main-heading { color: var(--heading-color); transition: color 0.3s ease; padding-top: 1rem; /* Default padding */ }
+        .sub-heading { color: var(--subheading-color); transition: color 0.3s ease; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem; }
+
+        /* Footer Styling */
+        .page-footer { text-align: center; padding: 1rem 0; margin-top: 1rem; font-size: 0.8rem; color: var(--footer-text-color); flex-shrink: 0; line-height: 1.5; transition: color 0.3s ease; }
+        .page-footer p { margin-bottom: 0.25rem; }
+
+        /* Theme Selector Styles */
+        .theme-selector-container { position: absolute; top: 1rem; right: 1rem; z-index: 10; }
+        .theme-selector-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+        #themeSelector { padding: 0.4rem 0.8rem; border-radius: 8px; border: 2px solid var(--theme-selector-border); background-color: var(--theme-selector-bg); color: var(--theme-selector-text); font-weight: 500; cursor: pointer; box-shadow: 2px 2px 0px var(--theme-selector-border); transition: all 0.2s ease; vertical-align: middle; font-size: 0.8rem; }
+        #themeSelector:focus { outline: none; box-shadow: 2px 2px 0px var(--theme-selector-border), 0 0 0 3px var(--main-container-bg), 0 0 0 5px var(--theme-selector-border); }
+
+        /* Dark Theme Adjustments */
+        body[data-theme="cosmic-purple"] .main-heading svg,
+        body[data-theme="night-mode"] .main-heading svg { color: #F687B3; /* pink-400 */ }
+        body[data-theme="cosmic-purple"] .sub-heading,
+        body[data-theme="night-mode"] .sub-heading { color: #D1D5DB; }
+        body[data-theme="cosmic-purple"] #themeSelector:focus,
+        body[data-theme="night-mode"] #themeSelector:focus { box-shadow: 2px 2px 0px var(--theme-selector-border), 0 0 0 3px var(--main-container-bg), 0 0 0 5px var(--theme-selector-border); }
+        body[data-theme="cosmic-purple"] .persona,
+        body[data-theme="night-mode"] .persona { color: #EDE9FE; }
+
+
+        /* Hide class utility */
+        .hidden { display: none; }
+
+        /* Animation for result reveal */
+        @keyframes reveal { from { transform: scale(0.8) rotate(-5deg); opacity: 0; } to { transform: scale(1) rotate(0deg); opacity: 1; } }
+
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <div class="theme-selector-container">
+        <label for="themeSelector" class="theme-selector-label">Choose a Theme:</label>
+        <select id="themeSelector">
+            <option value="default">🎨 Default</option>
+            <option value="ocean-blue">🌊 Ocean Blue</option>
+            <option value="forest-green">🌲 Forest Green</option>
+            <option value="cosmic-purple">✨ Cosmic Purple</option>
+            <option value="sunny-yellow">☀️ Sunny Yellow</option>
+            <option value="candy-pink">🍬 Candy Pink</option>
+            <option value="night-mode">🌙 Night Mode</option>
+        </select>
+    </div>
+
+    <main>
+        <div class="main-container">
+            <h1 class="main-heading text-3xl sm:text-4xl font-bold text-center mb-4 tracking-tight flex items-center justify-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-9 h-9 text-orange-700">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                 Time Travel Personality <span class="text-2xl">⏳</span>
+            </h1>
+
+            <p class="sub-heading text-center mb-8">Answer 5 quick questions to see who you might be in the past (1800s) and the future (2100s)! 🕰️🚀</p>
+
+            <div id="questionsContainer">
+                </div>
+
+            <div id="predictButtonContainer" class="text-center mt-6 hidden">
+                 <button id="predictBtn" class="action-button" disabled>🌌 Reveal My Time Personas!</button>
+            </div>
+
+
+            <div id="resultArea" class="hidden">
+                <p id="thinkingText">🧠 Calculating timelines...</p>
+                <p id="resultText"></p>
+                <div id="persona1800s" class="persona"></div>
+                <div id="persona2100s" class="persona mt-2"></div>
+                <button id="resetBtn" class="action-button mt-6">Play Again? 🔁</button>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="page-footer">
+        <p>© 2025 ToolForge. All rights reserved.</p>
+        <p>Built with ❤️ by Anas.</p>
+    </footer>
+
+    <script>
+        // --- DOM Elements ---
+        const questionsContainer = document.getElementById('questionsContainer');
+        const resultArea = document.getElementById('resultArea');
+        const thinkingText = document.getElementById('thinkingText');
+        const resultText = document.getElementById('resultText');
+        const persona1800sDiv = document.getElementById('persona1800s');
+        const persona2100sDiv = document.getElementById('persona2100s');
+        const predictBtn = document.getElementById('predictBtn');
+        const predictButtonContainer = document.getElementById('predictButtonContainer');
+        const resetBtn = document.getElementById('resetBtn');
+        const themeSelector = document.getElementById('themeSelector');
+
+        // --- Game State ---
+        let userChoices = {}; // Store choices as { questionId: choiceValue }
+        let currentRoundQuestions = []; // Stores the 5 questions for the current round
+        const NUM_QUESTIONS = 5;
+
+        // --- Question Pool (Aiming for 50+, starting with ~30) ---
+        // Each option has associated traits
+        const questionPool = [
+            // Interests & Activities
+            { id: 'q1', text: "What sounds most fun?", options: [{text:"Solving Puzzles 🧩", traits:['logical', 'detail']}, {text:"Creating Art/Music 🎨", traits:['creative', 'artistic']}, {text:"Building/Fixing Things 🏗️", traits:['technical', 'hands_on']}, {text:"Exploring Nature 🌲", traits:['nature', 'outdoors']}, {text:"Leading a Group 👑", traits:['leadership', 'social']}] },
+            { id: 'q2', text: "You'd rather spend an afternoon...", options: [{text:"Reading quietly 📚", traits:['introverted', 'logical']}, {text:"Playing sports ⚽", traits:['active', 'teamwork']}, {text:"Experimenting 🧪", traits:['curious', 'science']}, {text:"Chatting with friends 💬", traits:['social', 'people']}] },
+            { id: 'q3', text: "Your favorite type of story involves...", options: [{text:"Adventure & Discovery ⚔️", traits:['adventurous', 'curious']}, {text:"Mystery & Intrigue ❓", traits:['analytical', 'detail']}, {text:"Fantasy & Magic ✨", traits:['creative', 'imaginative']}, {text:"History & Real Events 📜", traits:['logical', 'traditional']}] },
+            { id: 'q4', text: "If you could invent something, it would be...", options: [{text:"A helpful robot 🤖", traits:['technical', 'innovative', 'helping']}, {text:"A new art form 🖼️", traits:['creative', 'artistic']}, {text:"A faster way to travel 🚀", traits:['technical', 'innovative']}, {text:"A way to talk to animals 🐾", traits:['nature', 'empathetic']}] },
+            { id: 'q5', text: "Which school subject do you prefer?", options: [{text:"Science/Math 🧪", traits:['logical', 'science', 'detail']}, {text:"Art/Music 🎭", traits:['artistic', 'creative']}, {text:"History/Literature 📚", traits:['traditional', 'logical']}, {text:"Physical Education 🤸", traits:['active', 'hands_on']}] },
+            { id: 'q6', text: "Your ideal vacation involves...", options: [{text:"Exploring ancient ruins 🏛️", traits:['curious', 'traditional']}, {text:"Relaxing on a beach 🏖️", traits:['calm', 'nature']}, {text:"Visiting a futuristic city 🏙️", traits:['innovative', 'technical']}, {text:"Hiking in the mountains ⛰️", traits:['outdoors', 'active', 'nature']}] },
+            { id: 'q7', text: "What kind of tool would you rather use?", options: [{text:"A computer 💻", traits:['technical', 'logical']}, {text:"A paintbrush 🖌️", traits:['artistic', 'creative']}, {text:"A hammer & nails 🔨", traits:['hands_on', 'building']}, {text:"A magnifying glass 🧐", traits:['detail', 'curious', 'logical']}] },
+
+            // Personality & Work Style
+            { id: 'q8', text: "Do you prefer clear instructions or figuring things out?", options: [{text:"Clear Instructions 👍", traits:['detail', 'traditional']}, {text:"Figuring it out 🤔", traits:['innovative', 'logical', 'curious']}] },
+            { id: 'q9', text: "When working, you prefer...", options: [{text:"Working alone 👤", traits:['introverted', 'focus']}, {text:"Collaborating with others 🧑‍🤝‍🧑", traits:['social', 'teamwork']}] },
+            { id: 'q10', text: "Are you more practical or imaginative?", options: [{text:"Practical 🔧", traits:['practical', 'logical']}, {text:"Imaginative ✨", traits:['creative', 'imaginative']}] },
+            { id: 'q11', text: "Change is usually...", options: [{text:"Exciting! ✨", traits:['adaptable', 'innovative']}, {text:"A bit scary 😨", traits:['traditional', 'cautious']}] },
+            { id: 'q12', text: "You make decisions based more on...", options: [{text:"Logic & Facts 🧠", traits:['logical', 'analytical']}, {text:"Feelings & Intuition ❤️", traits:['empathetic', 'intuitive']}] },
+            { id: 'q13', text: "Do you enjoy taking risks?", options: [{text:"Yes, often! 🔥", traits:['adventurous', 'innovative']}, {text:"Sometimes, carefully 🤔", traits:['cautious', 'analytical']}, {text:"Rarely, I prefer safety 🛡️", traits:['traditional', 'cautious']}] },
+            { id: 'q14', text: "You are more comfortable with...", options: [{text:"Technology 📱", traits:['technical', 'innovative']}, {text:"Nature 🌳", traits:['nature', 'traditional']}] },
+            { id: 'q15', text: "Which is more important in society?", options: [{text:"Tradition & Order 🏛️", traits:['traditional', 'detail']}, {text:"Progress & Innovation 🚀", traits:['innovative', 'technical']}] },
+            { id: 'q16', text: "Your ideal pace of life is...", options: [{text:"Fast and busy 🏃", traits:['active', 'social']}, {text:"Slow and steady 🐢", traits:['calm', 'introverted']}] },
+            { id: 'q17', text: "You prefer tasks that involve...", options: [{text:"Physical activity 💪", traits:['active', 'hands_on']}, {text:"Mental challenges 🤔", traits:['logical', 'analytical']}] },
+            { id: 'q18', text: "How important is following the rules?", options: [{text:"Very important ✅", traits:['traditional', 'detail']}, {text:"Rules can be bent 😉", traits:['innovative', 'creative']}] },
+            { id: 'q19', text: "You'd rather be known as...", options: [{text:"Kind & Caring ❤️", traits:['helping', 'empathetic', 'people']}, {text:"Smart & Knowledgeable 🧠", traits:['logical', 'analytical', 'science']}, {text:"Creative & Original ✨", traits:['creative', 'artistic', 'innovative']}, {text:"Hardworking & Reliable 👍", traits:['practical', 'hands_on', 'detail']}] },
+            { id: 'q20', text: "When learning, you prefer...", options: [{text:"Hands-on practice 🖐️", traits:['hands_on', 'practical']}, {text:"Reading and research 📚", traits:['logical', 'detail']}, {text:"Listening to experts 🧑‍🏫", traits:['social', 'traditional']}, {text:"Trial and error 🧪", traits:['innovative', 'curious']}] },
+            { id: 'q21', text: "You are more interested in...", options: [{text:"How things are made 🛠️", traits:['technical', 'building', 'hands_on']}, {text:"How people connect 🤝", traits:['people', 'social', 'empathetic']}, {text:"How nature works 🌱", traits:['nature', 'science', 'curious']}, {text:"How ideas spread 💡", traits:['creative', 'strategy', 'social']}] },
+            { id: 'q22', text: "Your ideal home would be...", options: [{text:"A cozy cottage 🏡", traits:['traditional', 'calm', 'nature']}, {text:"A high-tech smart home 🤖", traits:['technical', 'innovative', 'indoors']}, {text:"A bustling city apartment 🏙️", traits:['social', 'active']}, {text:"A rustic cabin in the woods 🌲", traits:['nature', 'outdoors', 'introverted']}] },
+            { id: 'q23', text: "Which job sounds more appealing?", options: [{text:"Doctor 🩺", traits:['helping', 'science', 'people']}, {text:"Artist 🎨", traits:['creative', 'artistic', 'introverted']}, {text:"Engineer ⚙️", traits:['technical', 'logical', 'building']}, {text:"Farmer 🧑‍🌾", traits:['nature', 'hands_on', 'practical']}] },
+            { id: 'q24', text: "You value _______ more.", options: [{text:"Community 👨‍👩‍👧‍👦", traits:['social', 'helping', 'traditional']}, {text:"Individuality 😎", traits:['creative', 'innovative', 'introverted']}, {text:"Knowledge 🧠", traits:['logical', 'science', 'curious']}, {text:"Nature 🌍", traits:['nature', 'calm']}] },
+            { id: 'q25', text: "If you time-traveled, you'd rather visit...", options: [{text:"The distant past 🦖", traits:['curious', 'traditional', 'adventurous']}, {text:"The far future 🚀", traits:['curious', 'innovative', 'technical']}] },
+            { id: 'q26', text: "You prefer news from...", options: [{text:"Established newspapers 📰", traits:['traditional', 'logical']}, {text:"Online tech blogs 💻", traits:['innovative', 'technical']}, {text:"Social media feeds📱", traits:['social', 'adaptable']}, {text:"Word of mouth 🗣️", traits:['social', 'traditional']}] },
+             { id: 'q27', text: "Your ideal pet is a...", options: [{text:"Loyal Dog 🐶", traits:['social', 'nature', 'active']}, {text:"Independent Cat 🐈", traits:['introverted', 'calm']}, {text:"Helpful Robot 🤖", traits:['technical', 'innovative']}, {text:"Exotic Bird 🦜", traits:['creative', 'nature']}] },
+             { id: 'q28', text: "You'd rather invent a new...", options: [{text:"Medicine 💊", traits:['science', 'helping', 'logical']}, {text:"Gadget 📱", traits:['technical', 'innovative']}, {text:"Song or Poem 🎶", traits:['creative', 'artistic']}, {text:"Farming technique 🌱", traits:['nature', 'practical', 'hands_on']}] },
+             { id: 'q29', text: "Which sounds like a better way to learn?", options: [{text:"Apprenticeship 🧑‍🔧", traits:['hands_on', 'practical', 'traditional']}, {text:"University lectures 🧑‍🏫", traits:['logical', 'detail']}, {text:"Online courses 💻", traits:['technical', 'innovative', 'introverted']}, {text:"Joining a club 🤝", traits:['social', 'teamwork']}] },
+             { id: 'q30', text: "You find beauty mostly in...", options: [{text:"Nature's patterns 🦋", traits:['nature', 'artistic', 'detail']}, {text:"Human creations 🏛️", traits:['artistic', 'building', 'technical']}, {text:"Logical systems ⚙️", traits:['logical', 'technical']}, {text:"People's kindness ❤️", traits:['people', 'helping', 'empathetic']}] },
+             // Add more questions up to 50+
+        ];
+
+        // --- Functions ---
+
+        /** Shuffles array in place. Fisher-Yates algorithm. */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        /** Selects unique random questions for the round. */
+        function selectRandomQuestions() {
+            const shuffledPool = [...questionPool];
+            shuffleArray(shuffledPool);
+            return shuffledPool.slice(0, NUM_QUESTIONS);
+        }
+
+        /** Creates and displays the question cards dynamically. */
+        function displayQuestions() {
+            questionsContainer.innerHTML = ''; // Clear previous questions
+            predictButtonContainer.classList.add('hidden'); // Hide predict button initially
+
+            currentRoundQuestions.forEach((qInfo, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.dataset.questionId = qInfo.id;
+
+                const heading = document.createElement('h2');
+                heading.className = 'question-heading';
+                heading.textContent = `Question ${index + 1}: ${qInfo.text}`;
+
+                const choicesGrid = document.createElement('div');
+                choicesGrid.className = 'choices-grid';
+                choicesGrid.id = `${qInfo.id}Choices`;
+
+                qInfo.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.className = 'choice-button';
+                    button.dataset.value = option.value; // Store the value associated with the choice
+                    button.dataset.traits = JSON.stringify(option.traits); // Store traits
+
+                    const emojiSpan = document.createElement('span');
+                    emojiSpan.textContent = option.text.match(/[\p{Emoji}\u200d]+/u)?.[0] || '❔';
+
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'text-content';
+                    textSpan.textContent = option.text.replace(/[\p{Emoji}\u200d]+/u, '').trim();
+
+                    button.appendChild(emojiSpan);
+                    button.appendChild(textSpan);
+                    choicesGrid.appendChild(button);
+                });
+
+                card.appendChild(heading);
+                card.appendChild(choicesGrid);
+                questionsContainer.appendChild(card);
+
+                choicesGrid.addEventListener('click', handleChoiceClick);
+            });
+             predictButtonContainer.classList.remove('hidden');
+             checkIfReadyToPredict();
+        }
+
+
+        /** Checks if all choices have been made and enables/disables the predict button. */
+        function checkIfReadyToPredict() {
+            const allAnswered = currentRoundQuestions.every(qInfo => userChoices[qInfo.id] !== undefined && userChoices[qInfo.id] !== null);
+            predictBtn.disabled = !allAnswered;
+        }
+
+        /** Handles clicks on choice buttons, updates state, and styles. */
+        function handleChoiceClick(event) {
+            const button = event.target.closest('.choice-button');
+            if (!button) return;
+
+            const choicesGrid = button.parentElement;
+            const questionId = choicesGrid.id.replace('Choices', '');
+            const value = button.dataset.value;
+            const traits = JSON.parse(button.dataset.traits); // Get traits from button
+
+            // Store the chosen value and its associated traits
+            userChoices[questionId] = { value: value, traits: traits };
+
+            const buttonsInCategory = choicesGrid.querySelectorAll('.choice-button');
+            buttonsInCategory.forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.dataset.value === value) btn.classList.add('selected');
+            });
+            checkIfReadyToPredict();
+        }
+
+        /** Heuristic prediction based on tallied traits. */
+        function predictPersonas() {
+            let traitScores = {
+                creative: 0, logical: 0, technical: 0, helping: 0, nature: 0,
+                outdoors: 0, indoors: 0, hands_on: 0, leadership: 0, detail: 0,
+                strategy: 0, artistic: 0, science: 0, people: 0, building: 0,
+                innovative: 0, traditional: 0, active: 0, calm: 0, social: 0,
+                introverted: 0, empathetic: 0, curious: 0, adaptable: 0, cautious: 0,
+                practical: 0
+            };
+
+            // Tally scores from chosen answers
+            for (const qId in userChoices) {
+                if (userChoices[qId] && userChoices[qId].traits) {
+                    userChoices[qId].traits.forEach(trait => {
+                        if (traitScores.hasOwnProperty(trait)) {
+                            traitScores[trait]++;
+                        } else {
+                             traitScores[trait] = 1; // Initialize if trait not seen before
+                        }
+                    });
+                }
+            }
+
+            // --- Predict 1800s Persona ---
+            let persona1800s = "a Villager 🧑‍🌾"; // Default
+            if (traitScores.logical >= 2 && traitScores.science >= 1) persona1800s = "a Scholar or Scientist 🧐";
+            else if (traitScores.artistic >= 2 || traitScores.creative >= 2) persona1800s = "an Artist or Writer ✍️";
+            else if (traitScores.hands_on >= 2 && traitScores.building >= 1) persona1800s = "a Blacksmith or Carpenter 🔨";
+            else if (traitScores.helping >= 2 && traitScores.people >= 1) persona1800s = "a Doctor or Teacher 🧑‍🏫";
+            else if (traitScores.nature >= 2 && traitScores.outdoors >= 1) persona1800s = "a Farmer or Explorer 🧭";
+            else if (traitScores.leadership >= 1 && traitScores.social >= 1) persona1800s = "a Town Leader or Merchant 💰";
+            else if (traitScores.traditional >= 2 && traitScores.detail >= 1) persona1800s = "a Librarian or Scribe 📜";
+            else if (traitScores.practical >= 2 && traitScores.hands_on >=1) persona1800s = "a Skilled Craftsperson 🛠️";
+
+
+            // --- Predict 2100s Persona ---
+            let persona2100s = "a Citizen of the Future ✨"; // Default
+            if (traitScores.technical >= 2 && traitScores.innovative >= 1) persona2100s = "a Cybernetic Engineer or AI Developer 🤖";
+            else if (traitScores.creative >= 2 && traitScores.technical >= 1) persona2100s = "a Virtual World Designer 🌐";
+            else if (traitScores.science >= 2 && traitScores.logical >= 1) persona2100s = "a Space Colonist or Bio-engineer 🌱";
+            else if (traitScores.helping >= 2 && traitScores.people >= 1) persona2100s = "a Global Community Organizer or Empathy Trainer ❤️";
+            else if (traitScores.nature >= 2 && traitScores.science >= 1) persona2100s = "an Eco-Architect or Climate Scientist 🌍";
+            else if (traitScores.artistic >= 2 && traitScores.innovative >= 1) persona2100s = "a Neuro-Artist or Holographic Performer 🎭";
+            else if (traitScores.strategy >= 2 && traitScores.leadership >= 1) persona2100s = "a Planetary Strategist or Network Leader 👑";
+            else if (traitScores.adaptable >= 2 && traitScores.curious >= 1) persona2100s = "a Multi-dimensional Explorer 🚀";
+
+
+            return { persona1800s, persona2100s };
+        }
+
+        /** Runs the prediction process. */
+        function runPrediction() {
+            if (predictBtn.disabled) return;
+
+            questionsContainer.classList.add('hidden'); // Hide questions
+            predictButtonContainer.classList.add('hidden'); // Hide button container
+            resultArea.classList.remove('hidden');
+            resultText.textContent = '';
+            persona1800sDiv.textContent = '';
+            persona2100sDiv.textContent = '';
+            thinkingText.textContent = '⏳ Calculating your temporal echoes...';
+            thinkingText.style.display = 'block';
+            resultArea.classList.remove('visible');
+
+            setTimeout(() => thinkingText.textContent = '🌌 Aligning timelines...', 1000);
+
+            setTimeout(() => {
+                const { persona1800s, persona2100s } = predictPersonas(); // Get heuristic prediction
+
+                thinkingText.style.display = 'none';
+                resultText.textContent = "Based on your answers...";
+                persona1800sDiv.innerHTML = `In the 1800s, you might have been... <br><span class="font-bold">${persona1800s}</span>`;
+                persona2100sDiv.innerHTML = `In the 2100s, you might be... <br><span class="font-bold">${persona2100s}</span>`;
+                resultArea.classList.add('visible');
+                resetBtn.classList.remove('hidden'); // Show reset button in result area
+            }, 2500);
+        }
+
+        /** Resets the game to its initial state. */
+        function resetGame() {
+            userChoices = {}; // Clear previous answers
+            currentRoundQuestions = selectRandomQuestions(); // Select new random questions
+
+            predictBtn.disabled = true; // Disable predict button
+            resultArea.classList.add('hidden');
+            resultArea.classList.remove('visible');
+            questionsContainer.classList.remove('hidden'); // Show questions container
+            predictButtonContainer.classList.remove('hidden'); // Show predict button container
+            resetBtn.classList.add('hidden'); // Hide reset button initially
+
+            displayQuestions(); // Display the new set of questions
+        }
+
+        // --- Theme Switching Logic (With localStorage) ---
+        function applyTheme(themeName) {
+            document.body.dataset.theme = themeName;
+            try { localStorage.setItem('timeTravelTheme', themeName); }
+            catch (e) { console.warn("Could not save theme preference:", e); }
+            // No p5 canvas colors to update in this version
+        }
+
+        function loadSavedTheme() {
+            let savedTheme = 'default';
+            try { savedTheme = localStorage.getItem('timeTravelTheme') || 'default'; }
+            catch (e) { console.warn("Could not load theme preference:", e); }
+            themeSelector.value = savedTheme;
+            applyTheme(savedTheme);
+        }
+
+        themeSelector.addEventListener('change', (event) => applyTheme(event.target.value));
+
+        // --- Event Listeners ---
+        predictBtn.addEventListener('click', runPrediction);
+        resetBtn.addEventListener('click', resetGame);
+
+        // --- Initial Load ---
+        loadSavedTheme();
+        resetGame(); // Initialize game state
+
+    </script>
+
+</body>
+</html>
